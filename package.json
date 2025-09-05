@@ -16,7 +16,10 @@
     "test-order-update": "node src/scripts/testOrderUpdate.js",
     "test-message-template": "node src/scripts/testMessageTemplate.js",
     "test-message-request": "node src/scripts/testMessageRequest.js",
-    "test-frontend-simulation": "node src/scripts/testFrontendSimulation.js"
+    "test-frontend-simulation": "node src/scripts/testFrontendSimulation.js",
+    "validate-complete": "node src/scripts/completeValidation.js",
+    "validate-simple": "node src/scripts/simpleValidation.js",
+    "validate-detailed": "node src/scripts/detailedValidation.js"
   },
   "keywords": [
     "api",
