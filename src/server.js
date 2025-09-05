@@ -9,13 +9,16 @@ const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
+// Configurar trust proxy para Railway
+app.set('trust proxy', 1);
+
 // Middleware de seguridad
 app.use(helmet());
 
 // CORS
 const allowedOrigins = process.env.NODE_ENV === 'production' 
   ? [
-      'omniwp-frontend.vercel.app',
+      'https://omniwp-frontend.vercel.app',
       'https://omniwp.vercel.app', 
       'https://www.omniwp.com'
     ]
@@ -28,12 +31,19 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
 app.use(cors({
   origin: function (origin, callback) {
     // Permitir requests sin origin (ej: mobile apps, Postman)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('CORS: Request sin origin header - permitido');
+      return callback(null, true);
+    }
+    
+    console.log('CORS: Verificando origin:', origin);
+    console.log('CORS: Orígenes permitidos:', allowedOrigins);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('CORS: Origin permitido:', origin);
       callback(null, true);
     } else {
-      console.log('CORS blocked origin:', origin);
+      console.log('CORS: Origin bloqueado:', origin);
       callback(new Error('No permitido por CORS'));
     }
   },
@@ -44,7 +54,16 @@ app.use(cors({
 
 // Manejo adicional de preflight requests
 app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  const origin = req.headers.origin;
+  console.log('CORS: Preflight request desde:', origin);
+  
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    console.log('CORS: Preflight permitido para:', origin);
+  } else {
+    console.log('CORS: Preflight bloqueado para:', origin);
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.header('Access-Control-Allow-Credentials', 'true');
