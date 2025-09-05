@@ -15,7 +15,7 @@ app.use(helmet());
 // CORS
 const allowedOrigins = process.env.NODE_ENV === 'production' 
   ? [
-      'https://omniwp-frontend.vercel.app',
+      'omniwp-frontend.vercel.app',
       'https://omniwp.vercel.app', 
       'https://www.omniwp.com'
     ]
