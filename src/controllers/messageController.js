@@ -56,6 +56,21 @@ const generateMessageTemplate = async (req, res, next) => {
       description: order.description
     });
 
+    console.log('📝 Template generado:', message);
+    console.log('📝 Respuesta completa:', {
+      message,
+      client: {
+        id: order.client.id,
+        name: order.client.name,
+        phone: order.client.phone
+      },
+      order: {
+        id: order.id,
+        description: order.description,
+        status: order.status
+      }
+    });
+
     res.status(200).json({
       message,
       client: {

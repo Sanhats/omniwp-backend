@@ -15,7 +15,8 @@
     "reset-for-users": "node src/scripts/resetForUsers.js",
     "test-order-update": "node src/scripts/testOrderUpdate.js",
     "test-message-template": "node src/scripts/testMessageTemplate.js",
-    "test-message-request": "node src/scripts/testMessageRequest.js"
+    "test-message-request": "node src/scripts/testMessageRequest.js",
+    "test-frontend-simulation": "node src/scripts/testFrontendSimulation.js"
   },
   "keywords": [
     "api",
