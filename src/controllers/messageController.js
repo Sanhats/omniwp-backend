@@ -286,7 +286,7 @@ const getTemplates = async (req, res, next) => {
       id: key,
       name: key,
       content: value,
-      placeholders: this.extractPlaceholders(value),
+      placeholders: extractPlaceholders(value),
       channel: 'both' // Por ahora, todos los templates sirven para ambos canales
     }));
 

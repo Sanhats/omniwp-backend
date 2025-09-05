@@ -22,6 +22,9 @@
     "validate-detailed": "node src/scripts/detailedValidation.js",
     "test-twilio": "node src/scripts/testTwilioIntegration.js",
     "test-whatsapp": "node src/scripts/testWhatsAppOnly.js",
+    "test-endpoints": "node src/scripts/testEndpoints.js",
+    "test-local": "node src/scripts/testLocal.js",
+    "test-whatsapp-config": "node src/scripts/testWhatsAppConfig.js",
     "retry-messages": "node src/scripts/retryFailedMessages.js"
   },
   "keywords": [
