@@ -76,11 +76,31 @@ const schemas = {
     status: z.enum(['pendiente', 'en_proceso', 'completado', 'cancelado', 'confirmado', 'entregado']).optional()
   }),
 
-  // Message schema
+  // Message schemas
   generateTemplate: z.object({
     clientId: z.string().min(1, 'El ID del cliente es requerido'),
     orderId: z.string().min(1, 'El ID del pedido es requerido'),
     templateType: z.enum(['confirmacion', 'recordatorio', 'seguimiento', 'entrega', 'agradecimiento']).optional().default('confirmacion')
+  }),
+
+  sendMessage: z.object({
+    clientId: z.string().min(1, 'El ID del cliente es requerido'),
+    orderId: z.string().min(1, 'El ID del pedido es requerido').optional(),
+    channel: z.enum(['whatsapp', 'email'], {
+      errorMap: () => ({ message: 'El canal debe ser "whatsapp" o "email"' })
+    }),
+    templateType: z.enum(['confirmacion', 'recordatorio', 'seguimiento', 'entrega', 'agradecimiento']).optional().default('confirmacion'),
+    variables: z.record(z.string()).optional().default({}),
+    subject: z.string().min(1, 'El subject es requerido para emails').optional()
+  }).refine((data) => {
+    // Si es email, subject es requerido
+    if (data.channel === 'email' && !data.subject) {
+      return false;
+    }
+    return true;
+  }, {
+    message: 'El subject es requerido para emails',
+    path: ['subject']
   })
 };
 

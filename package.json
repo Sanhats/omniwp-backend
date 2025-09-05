@@ -19,7 +19,10 @@
     "test-frontend-simulation": "node src/scripts/testFrontendSimulation.js",
     "validate-complete": "node src/scripts/completeValidation.js",
     "validate-simple": "node src/scripts/simpleValidation.js",
-    "validate-detailed": "node src/scripts/detailedValidation.js"
+    "validate-detailed": "node src/scripts/detailedValidation.js",
+    "test-twilio": "node src/scripts/testTwilioIntegration.js",
+    "test-whatsapp": "node src/scripts/testWhatsAppOnly.js",
+    "retry-messages": "node src/scripts/retryFailedMessages.js"
   },
   "keywords": [
     "api",
@@ -32,6 +35,7 @@
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.7.1",
+    "@sendgrid/mail": "^8.1.5",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -42,6 +46,7 @@
     "morgan": "^1.10.0",
     "node-fetch": "^3.3.2",
     "prisma": "^5.7.1",
+    "twilio": "^5.9.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {

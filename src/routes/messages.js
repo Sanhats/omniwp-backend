@@ -1,7 +1,14 @@
 const express = require('express');
-const { generateMessageTemplate } = require('../controllers/messageController');
+const { 
+  generateMessageTemplate, 
+  sendMessage, 
+  getMessages, 
+  getMessageById, 
+  getTemplates 
+} = require('../controllers/messageController');
 const { validate, schemas } = require('../middleware/validation');
 const { authMiddleware } = require('../middleware/auth');
+const { messageRateLimit } = require('../middleware/messageRateLimit');
 
 const router = express.Router();
 
@@ -42,7 +49,36 @@ router.get('/debug', (req, res) => {
   });
 });
 
-// POST /messages/template
+// POST /messages/template - Generar template (endpoint existente)
 router.post('/template', validate(schemas.generateTemplate), generateMessageTemplate);
+
+// POST /messages/send - Enviar mensaje real (con rate limiting)
+router.post('/send', messageRateLimit, validate(schemas.sendMessage), sendMessage);
+
+// GET /templates - Obtener templates disponibles
+router.get('/templates', getTemplates);
+
+// GET /config/status - Estado de configuración de Twilio
+router.get('/config/status', (req, res) => {
+  const TwilioWhatsAppProvider = require('../services/twilioWhatsAppProvider');
+  const whatsappProvider = new TwilioWhatsAppProvider();
+  
+  const status = {
+    whatsapp: whatsappProvider.getConfigStatus(),
+    isConfigured: whatsappProvider.isConfigured(),
+    timestamp: new Date().toISOString()
+  };
+
+  res.status(200).json({
+    success: true,
+    config: status
+  });
+});
+
+// GET /messages - Historial de mensajes
+router.get('/', getMessages);
+
+// GET /messages/:id - Obtener mensaje por ID
+router.get('/:id', getMessageById);
 
 module.exports = router;
