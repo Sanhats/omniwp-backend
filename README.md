@@ -189,11 +189,30 @@ El seed incluye:
 # Health check
 curl http://localhost:3000/api/v1/health
 
+# CORS test
+curl http://localhost:3000/api/v1/cors-test
+
 # Login
 curl -X POST http://localhost:3000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"tomas@test.com","password":"123456"}'
 ```
+
+## 🌐 CORS Configuration
+
+El backend está configurado para permitir requests desde:
+
+**Producción**:
+- `https://omniwp-frontend.vercel.app` (Frontend principal)
+- `https://omniwp.vercel.app`
+- `https://www.omniwp.com`
+
+**Desarrollo**:
+- `http://localhost:3000`
+- `http://localhost:3001`
+- `http://127.0.0.1:3001`
+
+Ver [CORS_CONFIG.md](./CORS_CONFIG.md) para más detalles.
 
 ## 📝 Estructura del Proyecto
 

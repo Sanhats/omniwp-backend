@@ -13,12 +13,43 @@ const app = express();
 app.use(helmet());
 
 // CORS
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? [
+      'https://omniwp-frontend.vercel.app',
+      'https://omniwp.vercel.app', 
+      'https://www.omniwp.com'
+    ]
+  : [
+      'http://localhost:3000', 
+      'http://localhost:3001',
+      'http://127.0.0.1:3001'
+    ];
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://omniwp.vercel.app', 'https://www.omniwp.com']
-    : ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true
+  origin: function (origin, callback) {
+    // Permitir requests sin origin (ej: mobile apps, Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Manejo adicional de preflight requests
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
 
 // Logging
 app.use(morgan('combined'));
