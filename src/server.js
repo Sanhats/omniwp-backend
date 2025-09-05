@@ -16,7 +16,13 @@ app.set('trust proxy', 1);
 app.use(helmet());
 
 // CORS
-const allowedOrigins = process.env.NODE_ENV === 'production' 
+// Detectar si estamos en producción (Railway, Render, etc.)
+const isProduction = process.env.NODE_ENV === 'production' || 
+                    process.env.RAILWAY_ENVIRONMENT === 'production' ||
+                    process.env.RENDER === 'true' ||
+                    process.env.PORT; // Railway siempre define PORT
+
+const allowedOrigins = isProduction
   ? [
       'https://omniwp-frontend.vercel.app',
       'https://omniwp.vercel.app', 
@@ -27,6 +33,14 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
       'http://localhost:3001',
       'http://127.0.0.1:3001'
     ];
+
+console.log('🔧 Configuración CORS:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('RAILWAY_ENVIRONMENT:', process.env.RAILWAY_ENVIRONMENT);
+console.log('RENDER:', process.env.RENDER);
+console.log('PORT:', process.env.PORT);
+console.log('isProduction:', isProduction);
+console.log('allowedOrigins:', allowedOrigins);
 
 app.use(cors({
   origin: function (origin, callback) {
