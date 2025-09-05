@@ -6,11 +6,14 @@ const { z } = require('zod');
 const validate = (schema) => {
   return (req, res, next) => {
     try {
+      console.log('🔍 Validando datos:', req.body);
       const validatedData = schema.parse(req.body);
+      console.log('✅ Datos validados correctamente:', validatedData);
       req.body = validatedData;
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.log('❌ Error de validación:', error.errors);
         const errorMessages = error.errors.map(err => ({
           field: err.path.join('.'),
           message: err.message

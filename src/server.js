@@ -87,6 +87,14 @@ app.options('*', (req, res) => {
 // Logging
 app.use(morgan('combined'));
 
+// Logging detallado para debugging
+app.use((req, res, next) => {
+  console.log(`📨 Request: ${req.method} ${req.path}`);
+  console.log('   Headers:', req.headers);
+  console.log('   Body:', req.body);
+  next();
+});
+
 // Rate limiting para endpoints de auth
 const authLimiter = rateLimit({
   windowMs: config.rateLimit.windowMs,

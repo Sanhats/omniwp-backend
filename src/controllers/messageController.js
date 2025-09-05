@@ -10,6 +10,12 @@ const generateMessageTemplate = async (req, res, next) => {
   try {
     const { clientId, orderId, templateType = 'confirmacion' } = req.body;
 
+    console.log('📝 Generando template de mensaje:');
+    console.log('   - clientId:', clientId);
+    console.log('   - orderId:', orderId);
+    console.log('   - templateType:', templateType);
+    console.log('   - userId:', req.user.id);
+
     // Verificar que el pedido existe y pertenece al usuario
     const order = await prisma.order.findFirst({
       where: {

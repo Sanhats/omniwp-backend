@@ -46,6 +46,26 @@ router.get('/order-status-test', (req, res) => {
   });
 });
 
+// Message template test endpoint
+router.get('/message-template-test', (req, res) => {
+  res.status(200).json({
+    message: 'Templates de mensajes soportados',
+    templates: [
+      'confirmacion',
+      'recordatorio',
+      'seguimiento',
+      'entrega',
+      'agradecimiento'
+    ],
+    example: {
+      clientId: 'string (required)',
+      orderId: 'string (required)',
+      templateType: 'string (optional, default: confirmacion)'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Rutas de la API
 router.use('/auth', authRoutes);
 router.use('/clients', clientRoutes);
