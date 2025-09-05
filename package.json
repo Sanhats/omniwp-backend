@@ -1,0 +1,36 @@
+{
+  "name": "omniwp-backend",
+  "version": "1.0.0",
+  "description": "Backend API para sistema de gestión de pedidos OmniWP",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "node src/scripts/seed.js",
+    "db:reset": "prisma db push --force-reset && npm run db:seed"
+  },
+  "keywords": ["api", "backend", "omniwp", "pedidos", "whatsapp"],
+  "author": "OmniWP Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "express-rate-limit": "^7.1.5",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.22.4",
+    "prisma": "^5.7.1",
+    "@prisma/client": "^5.7.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

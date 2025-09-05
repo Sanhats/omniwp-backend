@@ -1,0 +1,50 @@
+// ----------------------
+// Prisma + MongoDB Setup
+// ----------------------
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------
+// Models
+// ----------------------
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String   @unique
+  password  String   // hashed with bcrypt
+  clients   Client[]
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Client {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  phone     String
+  notes     String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  clientId    String   @db.ObjectId
+  client      Client   @relation(fields: [clientId], references: [id])
+  description String
+  status      String   // ejemplo: "pendiente", "confirmado", "entregado"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
