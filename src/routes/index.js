@@ -30,6 +30,22 @@ router.get('/cors-test', (req, res) => {
   });
 });
 
+// Order status test endpoint
+router.get('/order-status-test', (req, res) => {
+  res.status(200).json({
+    message: 'Estados de pedidos soportados',
+    statuses: [
+      'pendiente',
+      'en_proceso', 
+      'completado',
+      'cancelado',
+      'confirmado',
+      'entregado'
+    ],
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Rutas de la API
 router.use('/auth', authRoutes);
 router.use('/clients', clientRoutes);

@@ -65,12 +65,12 @@ const schemas = {
   createOrder: z.object({
     clientId: z.string().min(1, 'El ID del cliente es requerido'),
     description: z.string().min(5, 'La descripción debe tener al menos 5 caracteres'),
-    status: z.enum(['pendiente', 'confirmado', 'entregado']).optional().default('pendiente')
+    status: z.enum(['pendiente', 'en_proceso', 'completado', 'cancelado', 'confirmado', 'entregado']).optional().default('pendiente')
   }),
 
   updateOrder: z.object({
     description: z.string().min(5, 'La descripción debe tener al menos 5 caracteres').optional(),
-    status: z.enum(['pendiente', 'confirmado', 'entregado']).optional()
+    status: z.enum(['pendiente', 'en_proceso', 'completado', 'cancelado', 'confirmado', 'entregado']).optional()
   }),
 
   // Message schema

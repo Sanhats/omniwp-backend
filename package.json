@@ -12,7 +12,8 @@
     "db:seed": "node src/scripts/seed.js",
     "db:reset": "prisma db push --force-reset && npm run db:seed",
     "validate": "node src/scripts/validation.js",
-    "reset-for-users": "node src/scripts/resetForUsers.js"
+    "reset-for-users": "node src/scripts/resetForUsers.js",
+    "test-order-update": "node src/scripts/testOrderUpdate.js"
   },
   "keywords": ["api", "backend", "omniwp", "pedidos", "whatsapp"],
   "author": "OmniWP Team",
