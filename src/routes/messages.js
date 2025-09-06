@@ -4,7 +4,8 @@ const {
   sendMessage, 
   getMessages, 
   getMessageById, 
-  getTemplates 
+  getTemplates,
+  getWhatsAppStatus
 } = require('../controllers/messageController');
 const { validate, schemas } = require('../middleware/validation');
 const { authMiddleware } = require('../middleware/auth');
@@ -74,6 +75,9 @@ router.get('/config/status', (req, res) => {
     config: status
   });
 });
+
+// GET /whatsapp/status - Estado de WhatsApp Web del usuario
+router.get('/whatsapp/status', getWhatsAppStatus);
 
 // GET /messages - Historial de mensajes
 router.get('/', getMessages);

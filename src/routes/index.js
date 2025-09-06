@@ -4,6 +4,7 @@ const clientRoutes = require('./clients');
 const orderRoutes = require('./orders');
 const messageRoutes = require('./messages');
 const webhookRoutes = require('./webhooks');
+const whatsappRoutes = require('./whatsapp');
 
 const router = express.Router();
 
@@ -73,5 +74,6 @@ router.use('/clients', clientRoutes);
 router.use('/orders', orderRoutes);
 router.use('/messages', messageRoutes);
 router.use('/webhooks', webhookRoutes);
+router.use('/whatsapp', whatsappRoutes);
 
 module.exports = router;

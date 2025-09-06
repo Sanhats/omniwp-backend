@@ -1,9 +1,11 @@
 const { PrismaClient } = require('@prisma/client');
 const { generateTemplate } = require('../config/templates');
 const MessageService = require('../services/messageService');
+const WhatsAppWebService = require('../services/whatsappWebService');
 
 const prisma = new PrismaClient();
 const messageService = new MessageService();
+const whatsappService = new WhatsAppWebService();
 
 /**
  * Generar template de mensaje para WhatsApp (endpoint existente)
@@ -174,16 +176,76 @@ const sendMessage = async (req, res, next) => {
       });
     }
 
-    // Enviar mensaje
-    const result = await messageService.sendMessage({
-      userId: req.user.id,
-      clientId,
-      orderId,
-      channel,
-      templateType,
-      variables,
-      subject
-    });
+    // Determinar el proveedor a usar
+    let useWhatsAppWeb = false;
+    if (channel === 'whatsapp') {
+      // Verificar si el usuario tiene sesión de WhatsApp Web activa
+      useWhatsAppWeb = whatsappService.hasActiveSession(req.user.id);
+      
+      if (useWhatsAppWeb) {
+        console.log('📱 Usando WhatsApp Web para envío de mensaje');
+      } else {
+        console.log('📱 Usando Twilio para envío de mensaje (WhatsApp Web no disponible)');
+      }
+    }
+
+    let result;
+    
+    if (useWhatsAppWeb) {
+      // Usar WhatsApp Web
+      const template = generateTemplate(templateType, {
+        name: client.name,
+        description: orderId ? (await prisma.order.findFirst({
+          where: { id: orderId, userId: req.user.id }
+        }))?.description : '',
+        ...variables
+      });
+
+      const whatsappResult = await whatsappService.sendMessage(
+        req.user.id,
+        client.phone,
+        template
+      );
+
+      // Crear registro de mensaje en la base de datos
+      const messageRecord = await prisma.message.create({
+        data: {
+          userId: req.user.id,
+          clientId,
+          orderId,
+          channel: 'whatsapp',
+          direction: 'outbound',
+          provider: 'whatsapp_web',
+          providerMessageId: whatsappResult.messageId,
+          templateType,
+          variables: {
+            clientName: client.name,
+            clientPhone: client.phone,
+            ...variables
+          },
+          text: template,
+          status: whatsappResult.status
+        }
+      });
+
+      result = {
+        success: true,
+        messageId: messageRecord.id,
+        status: whatsappResult.status,
+        providerMessageId: whatsappResult.messageId
+      };
+    } else {
+      // Usar el servicio tradicional (Twilio)
+      result = await messageService.sendMessage({
+        userId: req.user.id,
+        clientId,
+        orderId,
+        channel,
+        templateType,
+        variables,
+        subject
+      });
+    }
 
     if (result.success) {
       res.status(202).json({
@@ -311,10 +373,36 @@ const extractPlaceholders = (template) => {
   return matches.map(match => match.slice(1, -1)); // Remover { y }
 };
 
+/**
+ * Verificar estado de WhatsApp Web del usuario
+ */
+const getWhatsAppStatus = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    
+    const status = await whatsappService.getConnectionStatus(userId);
+    
+    res.status(200).json({
+      success: true,
+      whatsappWeb: {
+        connected: status.connected,
+        status: status.status,
+        hasSession: status.hasSession,
+        qrCode: status.qrCode
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error en getWhatsAppStatus:', error.message);
+    next(error);
+  }
+};
+
 module.exports = {
   generateMessageTemplate,
   sendMessage,
   getMessages,
   getMessageById,
-  getTemplates
+  getTemplates,
+  getWhatsAppStatus
 };

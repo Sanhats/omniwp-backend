@@ -3,11 +3,51 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const http = require('http');
+const socketIo = require('socket.io');
 const config = require('./config');
 const routes = require('./routes');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
+const server = http.createServer(app);
+
+// Configurar Socket.io
+const io = socketIo(server, {
+  cors: {
+    origin: function (origin, callback) {
+      // Permitir requests sin origin (ej: mobile apps, Postman)
+      if (!origin) {
+        return callback(null, true);
+      }
+      
+      const isProduction = process.env.NODE_ENV === 'production' || 
+                          process.env.RAILWAY_ENVIRONMENT === 'production' ||
+                          process.env.RENDER === 'true' ||
+                          process.env.PORT;
+      
+      const allowedOrigins = isProduction
+        ? [
+            'https://omniwp-frontend.vercel.app',
+            'https://omniwp.vercel.app', 
+            'https://www.omniwp.com'
+          ]
+        : [
+            'http://localhost:3000', 
+            'http://localhost:3001',
+            'http://127.0.0.1:3001'
+          ];
+      
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('No permitido por CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST']
+  }
+});
 
 // Configurar trust proxy para Railway
 app.set('trust proxy', 1);
@@ -132,6 +172,9 @@ app.use(express.urlencoded({ extended: true }));
 // Rutas de la API
 app.use('/api/v1', routes);
 
+// Configurar Socket.io
+require('./services/socketService')(io);
+
 // Ruta raíz
 app.get('/', (req, res) => {
   res.json({
@@ -158,11 +201,12 @@ app.use(errorHandler);
 
 // Iniciar servidor
 const PORT = config.server.port;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Servidor OmniWP ejecutándose en puerto ${PORT}`);
   console.log(`📊 Entorno: ${config.server.nodeEnv}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/v1/health`);
   console.log(`📚 API Base URL: http://localhost:${PORT}/api/v1`);
+  console.log(`🔌 WebSocket disponible en: ws://localhost:${PORT}`);
 });
 
-module.exports = app;
+module.exports = { app, server, io };

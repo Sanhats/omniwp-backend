@@ -47,6 +47,29 @@ const config = {
     general: parseInt(process.env.MESSAGE_RATE_LIMIT_GENERAL) || 100, // mensajes por 15 min
   },
 
+  // Redis Configuration
+  redis: {
+    url: process.env.REDIS_URL || 'redis://localhost:6379',
+    isConfigured: !!process.env.REDIS_URL
+  },
+
+  // WhatsApp Web Configuration
+  whatsappWeb: {
+    sessionPath: process.env.WHATSAPP_SESSION_PATH || './sessions',
+    puppeteerOptions: {
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu'
+      ]
+    }
+  },
+
   // Templates
   templates: {
     confirmacion: "Hola {clientName}, tu pedido '{orderDescription}' está confirmado 🚀",
