@@ -18,10 +18,50 @@ const railwayConfig = require('../config/railway');
 // Aplicar rate limiting general a todas las rutas de WhatsApp
 router.use(whatsappRateLimit);
 
-// Aplicar autenticación a todas las rutas
+// Endpoint de disponibilidad (sin autenticación)
+router.get('/availability', (req, res) => {
+  res.json({
+    success: true,
+    whatsappWeb: {
+      enabled: railwayConfig.whatsappWeb.enabled,
+      hasRedis: railwayConfig.hasRedis,
+      isRailway: railwayConfig.isRailway,
+      reason: railwayConfig.whatsappWeb.enabled 
+        ? 'WhatsApp Web está disponible' 
+        : 'WhatsApp Web no está disponible (Redis requerido)'
+    },
+    features: {
+      websockets: railwayConfig.websockets.enabled,
+      redis: railwayConfig.hasRedis,
+      whatsappWeb: railwayConfig.whatsappWeb.enabled
+    }
+  });
+});
+
+// Endpoint de status (sin autenticación para verificación general)
+router.get('/status', (req, res) => {
+  res.json({
+    success: true,
+    whatsappWeb: {
+      enabled: railwayConfig.whatsappWeb.enabled,
+      hasRedis: railwayConfig.hasRedis,
+      isRailway: railwayConfig.isRailway,
+      reason: railwayConfig.whatsappWeb.enabled 
+        ? 'WhatsApp Web está disponible' 
+        : 'WhatsApp Web no está disponible (Redis requerido)'
+    },
+    features: {
+      websockets: railwayConfig.websockets.enabled,
+      redis: railwayConfig.hasRedis,
+      whatsappWeb: railwayConfig.whatsappWeb.enabled
+    }
+  });
+});
+
+// Aplicar autenticación a todas las demás rutas
 router.use(authMiddleware);
 
-// Middleware para verificar si WhatsApp Web está habilitado
+// Middleware para verificar si WhatsApp Web está habilitado (solo para rutas protegidas)
 router.use((req, res, next) => {
   if (!railwayConfig.whatsappWeb.enabled) {
     return res.status(503).json({
@@ -46,12 +86,6 @@ router.post('/connect',
   whatsappController.connect
 );
 
-/**
- * @route GET /whatsapp/status
- * @desc Obtener estado de conexión de WhatsApp del usuario
- * @access Private
- */
-router.get('/status', whatsappController.getStatus);
 
 /**
  * @route POST /whatsapp/disconnect
@@ -107,28 +141,5 @@ router.get('/messages',
   whatsappController.getMessages
 );
 
-/**
- * @route GET /whatsapp/availability
- * @desc Verificar disponibilidad de WhatsApp Web
- * @access Public
- */
-router.get('/availability', (req, res) => {
-  res.json({
-    success: true,
-    whatsappWeb: {
-      enabled: railwayConfig.whatsappWeb.enabled,
-      hasRedis: railwayConfig.hasRedis,
-      isRailway: railwayConfig.isRailway,
-      reason: railwayConfig.whatsappWeb.enabled 
-        ? 'WhatsApp Web está disponible' 
-        : 'WhatsApp Web no está disponible (Redis requerido)'
-    },
-    features: {
-      websockets: railwayConfig.websockets.enabled,
-      redis: railwayConfig.hasRedis,
-      whatsappWeb: railwayConfig.whatsappWeb.enabled
-    }
-  });
-});
 
 module.exports = router;
