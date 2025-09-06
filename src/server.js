@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const http = require('http');
 const socketIo = require('socket.io');
 const config = require('./config');
+const railwayConfig = require('./config/railway');
 const routes = require('./routes');
 const { errorHandler } = require('./middleware/errorHandler');
 
@@ -13,41 +14,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Configurar Socket.io
-const io = socketIo(server, {
-  cors: {
-    origin: function (origin, callback) {
-      // Permitir requests sin origin (ej: mobile apps, Postman)
-      if (!origin) {
-        return callback(null, true);
-      }
-      
-      const isProduction = process.env.NODE_ENV === 'production' || 
-                          process.env.RAILWAY_ENVIRONMENT === 'production' ||
-                          process.env.RENDER === 'true' ||
-                          process.env.PORT;
-      
-      const allowedOrigins = isProduction
-        ? [
-            'https://omniwp-frontend.vercel.app',
-            'https://omniwp.vercel.app', 
-            'https://www.omniwp.com'
-          ]
-        : [
-            'http://localhost:3000', 
-            'http://localhost:3001',
-            'http://127.0.0.1:3001'
-          ];
-      
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('No permitido por CORS'));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST']
-  }
-});
+const io = socketIo(server, railwayConfig.websockets.cors);
 
 // Configurar trust proxy para Railway
 app.set('trust proxy', 1);

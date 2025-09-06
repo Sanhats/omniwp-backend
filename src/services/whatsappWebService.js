@@ -24,10 +24,15 @@ class WhatsAppWebService {
   async initialize() {
     try {
       await redisService.connect();
-      console.log('✅ WhatsAppWebService inicializado');
+      if (redisService.isReady()) {
+        console.log('✅ WhatsAppWebService inicializado con Redis');
+      } else {
+        console.log('⚠️ WhatsAppWebService inicializado sin Redis (modo limitado)');
+      }
     } catch (error) {
       console.error('❌ Error inicializando WhatsAppWebService:', error);
-      throw error;
+      // No lanzar error, permitir que el servicio funcione sin Redis
+      console.log('⚠️ Continuando sin Redis (modo limitado)');
     }
   }
 
