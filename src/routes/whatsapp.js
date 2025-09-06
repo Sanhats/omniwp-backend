@@ -1,4 +1,5 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const whatsappController = require('../controllers/whatsappController');
 const { authMiddleware } = require('../middleware/auth');
@@ -15,7 +16,24 @@ const {
 } = require('../middleware/whatsappValidation');
 const railwayConfig = require('../config/railway');
 
-// Aplicar rate limiting general a todas las rutas de WhatsApp
+// Rate limiting más permisivo para endpoints públicos
+const publicRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minuto
+  max: 30, // 30 requests por minuto para endpoints públicos
+  message: {
+    success: false,
+    message: 'Demasiadas solicitudes, intenta más tarde',
+    code: 'RATE_LIMIT_EXCEEDED'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Aplicar rate limiting permisivo a endpoints públicos
+router.use('/availability', publicRateLimit);
+router.use('/status', publicRateLimit);
+
+// Aplicar rate limiting restrictivo a rutas protegidas
 router.use(whatsappRateLimit);
 
 // Endpoint de disponibilidad (sin autenticación)
@@ -58,6 +76,44 @@ router.get('/status', (req, res) => {
   });
 });
 
+// Endpoint de connect público (solo para verificar disponibilidad)
+router.post('/connect', (req, res) => {
+  if (!railwayConfig.whatsappWeb.enabled) {
+    return res.status(503).json({
+      success: false,
+      message: 'WhatsApp Web no está disponible en este momento',
+      code: 'WHATSAPP_WEB_DISABLED',
+      reason: 'Redis no configurado o WhatsApp Web deshabilitado'
+    });
+  }
+  
+  // Si está habilitado, devolver que requiere autenticación
+  res.status(401).json({
+    success: false,
+    message: 'Autenticación requerida para conectar WhatsApp',
+    code: 'AUTH_REQUIRED'
+  });
+});
+
+// Endpoint de info público (solo para verificar disponibilidad)
+router.get('/info', (req, res) => {
+  if (!railwayConfig.whatsappWeb.enabled) {
+    return res.status(503).json({
+      success: false,
+      message: 'WhatsApp Web no está disponible en este momento',
+      code: 'WHATSAPP_WEB_DISABLED',
+      reason: 'Redis no configurado o WhatsApp Web deshabilitado'
+    });
+  }
+  
+  // Si está habilitado, devolver que requiere autenticación
+  res.status(401).json({
+    success: false,
+    message: 'Autenticación requerida para obtener información de WhatsApp',
+    code: 'AUTH_REQUIRED'
+  });
+});
+
 // Aplicar autenticación a todas las demás rutas
 router.use(authMiddleware);
 
@@ -75,16 +131,17 @@ router.use((req, res, next) => {
 });
 
 /**
- * @route POST /whatsapp/connect
- * @desc Crear nueva sesión de WhatsApp para el usuario
+ * @route POST /whatsapp/connect-auth
+ * @desc Crear nueva sesión de WhatsApp para el usuario (autenticado)
  * @access Private
  */
-router.post('/connect', 
+router.post('/connect-auth', 
   whatsappConnectionRateLimit,
   requireNoWhatsAppSession,
   validateWhatsApp(schemas.connectWhatsApp),
   whatsappController.connect
 );
+
 
 
 /**
@@ -122,11 +179,11 @@ router.post('/send',
 );
 
 /**
- * @route GET /whatsapp/info
- * @desc Obtener información del cliente WhatsApp conectado
+ * @route GET /whatsapp/info-auth
+ * @desc Obtener información del cliente WhatsApp conectado (autenticado)
  * @access Private
  */
-router.get('/info', 
+router.get('/info-auth', 
   requireWhatsAppSession,
   whatsappController.getInfo
 );
