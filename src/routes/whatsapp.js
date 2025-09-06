@@ -114,6 +114,42 @@ router.get('/info', (req, res) => {
   });
 });
 
+// Endpoint de prueba para verificar JWT (sin autenticación)
+router.get('/test-jwt', (req, res) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      message: 'Token de acceso requerido',
+      code: 'TOKEN_REQUIRED'
+    });
+  }
+
+  const token = authHeader.substring(7);
+  
+  try {
+    const jwt = require('jsonwebtoken');
+    const config = require('../config');
+    
+    const decoded = jwt.verify(token, config.jwt.secret);
+    
+    res.json({
+      success: true,
+      decoded: decoded,
+      userId: decoded.userId,
+      email: decoded.email,
+      keys: Object.keys(decoded)
+    });
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      error: error.message,
+      name: error.name
+    });
+  }
+});
+
 // Aplicar autenticación a todas las demás rutas
 router.use(authMiddleware);
 
