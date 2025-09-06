@@ -73,8 +73,33 @@ const whatsappConnectionRateLimit = rateLimit({
   }
 });
 
+/**
+ * Rate limiting para consultas de información de WhatsApp
+ * Más permisivo para permitir polling frecuente del estado
+ */
+const whatsappInfoRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minuto
+  max: 30, // 30 requests por minuto por usuario
+  message: {
+    success: false,
+    message: 'Demasiadas consultas de información de WhatsApp, intenta más tarde',
+    code: 'WHATSAPP_INFO_RATE_LIMIT',
+    retryAfter: 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Aplicar rate limiting por usuario
+  keyGenerator: (req) => {
+    const userId = req.user?.id || 'anonymous';
+    return `whatsapp_info:${userId}`;
+  },
+  // Skip successful requests para no penalizar consultas exitosas
+  skipSuccessfulRequests: true
+});
+
 module.exports = {
   whatsappRateLimit,
   whatsappMessageRateLimit,
-  whatsappConnectionRateLimit
+  whatsappConnectionRateLimit,
+  whatsappInfoRateLimit
 };

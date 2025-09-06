@@ -3,10 +3,11 @@ const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const whatsappController = require('../controllers/whatsappController');
 const { authMiddleware } = require('../middleware/auth');
-const { 
-  whatsappRateLimit, 
-  whatsappMessageRateLimit, 
-  whatsappConnectionRateLimit 
+const {
+  whatsappRateLimit,
+  whatsappMessageRateLimit,
+  whatsappConnectionRateLimit,
+  whatsappInfoRateLimit
 } = require('../middleware/whatsappRateLimit');
 const { 
   validateWhatsApp, 
@@ -220,6 +221,7 @@ router.post('/send',
  * @access Private
  */
 router.get('/info-auth', 
+  whatsappInfoRateLimit,
   requireWhatsAppSession,
   whatsappController.getInfo
 );
