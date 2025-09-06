@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const whatsappController = require('../controllers/whatsappController');
-const { authenticateToken } = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/auth');
 const { 
   whatsappRateLimit, 
   whatsappMessageRateLimit, 
@@ -19,7 +19,7 @@ const railwayConfig = require('../config/railway');
 router.use(whatsappRateLimit);
 
 // Aplicar autenticación a todas las rutas
-router.use(authenticateToken);
+router.use(authMiddleware);
 
 // Middleware para verificar si WhatsApp Web está habilitado
 router.use((req, res, next) => {
