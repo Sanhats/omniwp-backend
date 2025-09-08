@@ -30,27 +30,47 @@ class WhatsAppController {
    */
   async connect(req, res) {
     try {
-      const { userId } = req.user; // Obtener del middleware de auth
+      console.log('🔐 req.user completo:', JSON.stringify(req.user, null, 2));
+      console.log('🔐 req.user.id:', req.user?.id);
+      console.log('🔐 req.user.userId:', req.user?.userId);
+      
+      const userId = req.user?.id || req.user?.userId; // Obtener del middleware de auth
 
       console.log(`🔌 Conectando WhatsApp para usuario: ${userId}`);
 
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Usuario no identificado en la petición'
+        });
+      }
+
+      console.log('📱 Iniciando creación de sesión WhatsApp...');
       // Crear nueva sesión
       const result = await whatsappService.createSession(userId);
+      console.log('📱 Resultado de creación de sesión:', result);
 
       if (result.success) {
+        console.log('✅ Sesión creada exitosamente');
         // Si se generó QR, obtenerlo
         let qrCode = null;
         if (result.status === 'qr_generated') {
+          console.log('📱 Obteniendo QR code...');
           qrCode = await whatsappService.getQRCode(userId);
+          console.log('📱 QR code obtenido:', qrCode ? 'Sí' : 'No');
         }
 
-        res.json({
+        const response = {
           success: true,
           status: result.status,
           message: result.message,
           qrCode: qrCode
-        });
+        };
+        
+        console.log('📤 Enviando respuesta exitosa:', JSON.stringify(response, null, 2));
+        res.json(response);
       } else {
+        console.log('❌ Error en creación de sesión:', result.message);
         res.status(400).json({
           success: false,
           message: result.message

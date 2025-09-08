@@ -83,8 +83,22 @@ class WhatsAppWebService {
       this.sessions.set(userId, client);
       this.connectionStatus.set(userId, 'initializing');
 
-      // Inicializar cliente
-      await client.initialize();
+      console.log(`📱 Inicializando cliente WhatsApp para usuario ${userId}...`);
+      
+      // Inicializar cliente con timeout
+      const initPromise = client.initialize();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout inicializando cliente WhatsApp')), 30000); // 30 segundos
+      });
+
+      try {
+        await Promise.race([initPromise, timeoutPromise]);
+        console.log(`✅ Cliente WhatsApp inicializado para usuario ${userId}`);
+      } catch (error) {
+        console.error(`❌ Error inicializando cliente para usuario ${userId}:`, error);
+        this.connectionStatus.set(userId, 'error');
+        throw error;
+      }
 
       return {
         success: true,

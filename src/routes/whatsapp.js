@@ -151,6 +151,33 @@ router.get('/test-jwt', (req, res) => {
   }
 });
 
+// Endpoint de prueba para verificar configuración de WhatsApp (sin autenticación)
+router.get('/test-config', (req, res) => {
+  try {
+    const config = require('../config');
+    const railwayConfig = require('../config/railway');
+    
+    res.json({
+      success: true,
+      config: {
+        whatsappWeb: config.whatsappWeb,
+        redis: config.redis,
+        railway: railwayConfig
+      },
+      environment: {
+        NODE_ENV: process.env.NODE_ENV,
+        REDIS_URL: process.env.REDIS_URL ? 'Configurado' : 'No configurado',
+        WHATSAPP_WEB_ENABLED: process.env.WHATSAPP_WEB_ENABLED
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Aplicar autenticación a todas las demás rutas
 router.use(authMiddleware);
 
