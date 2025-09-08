@@ -326,6 +326,107 @@ class WhatsAppController {
   }
 
   /**
+   * POST /whatsapp/restart
+   * Reiniciar conexión WhatsApp (útil para resolver problemas)
+   */
+  async restartConnection(req, res) {
+    try {
+      const { userId } = req.user;
+
+      console.log(`🔄 Reiniciando conexión WhatsApp para usuario: ${userId}`);
+
+      // Desconectar sesión existente si existe
+      await whatsappService.disconnectSession(userId);
+      
+      // Esperar un momento
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Crear nueva sesión
+      const result = await whatsappService.createSession(userId);
+
+      res.json({
+        success: true,
+        message: 'Conexión reiniciada exitosamente',
+        status: result.status
+      });
+
+    } catch (error) {
+      console.error('❌ Error en restartConnection:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * GET /whatsapp/debug
+   * Obtener información detallada de debugging para WhatsApp
+   */
+  async getDebugInfo(req, res) {
+    try {
+      const { userId } = req.user;
+
+      console.log(`🔍 Obteniendo información de debug para usuario: ${userId}`);
+
+      const status = await whatsappService.getConnectionStatus(userId);
+      const qrCode = await whatsappService.getQRCode(userId);
+      const hasSession = whatsappService.hasActiveSession(userId);
+
+      // Información adicional de debugging
+      const debugInfo = {
+        userId: userId,
+        timestamp: new Date().toISOString(),
+        connectionStatus: status,
+        hasQRCode: !!qrCode,
+        hasActiveSession: hasSession,
+        environment: {
+          nodeVersion: process.version,
+          platform: process.platform,
+          redisConnected: whatsappService.redisService?.isReady() || false,
+          puppeteerArgs: process.env.PUPPETEER_ARGS || 'default'
+        },
+        recommendations: []
+      };
+
+      // Agregar recomendaciones basadas en el estado
+      if (status.status === 'auth_failed') {
+        debugInfo.recommendations.push('Error de autenticación: Intenta desconectar y volver a conectar');
+        debugInfo.recommendations.push('Verifica que el QR no haya expirado (válido por 2 minutos)');
+        debugInfo.recommendations.push('Asegúrate de que tu teléfono tenga conexión a internet');
+      }
+
+      if (status.status === 'disconnected') {
+        debugInfo.recommendations.push('Cliente desconectado: Intenta reconectar');
+        debugInfo.recommendations.push('Verifica la conexión a internet del servidor');
+      }
+
+      if (status.status === 'error') {
+        debugInfo.recommendations.push('Error general: Revisa los logs del servidor');
+        debugInfo.recommendations.push('Intenta reiniciar la conexión');
+      }
+
+      if (!qrCode && status.status === 'qr_generated') {
+        debugInfo.recommendations.push('QR generado pero no disponible: Espera unos segundos y vuelve a intentar');
+      }
+
+      res.json({
+        success: true,
+        debug: debugInfo
+      });
+
+    } catch (error) {
+      console.error('❌ Error en getDebugInfo:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor',
+        error: error.message
+      });
+    }
+  }
+
+  /**
    * GET /whatsapp/messages
    * Obtener historial de mensajes de WhatsApp del usuario
    */

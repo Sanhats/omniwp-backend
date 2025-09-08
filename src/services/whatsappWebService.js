@@ -194,7 +194,7 @@ class WhatsAppWebService {
       await this.handleIncomingMessage(message, userId);
     });
 
-    // Evento: Error
+    // Evento: Error de autenticación
     client.on('auth_failure', async (msg) => {
       console.error(`❌ Error de autenticación para usuario ${userId}:`, msg);
       await redisService.saveConnectionStatus(userId, 'auth_failed');
@@ -206,6 +206,91 @@ class WhatsAppWebService {
         socketService.emitWhatsAppError(userId, {
           type: 'auth_failure',
           message: msg
+        });
+      }
+    });
+
+    // Evento: Cambio de estado
+    client.on('change_state', async (state) => {
+      console.log(`🔄 Cambio de estado para usuario ${userId}:`, state);
+      this.connectionStatus.set(userId, state);
+      
+      // Emitir cambio de estado via WebSocket
+      const socketService = getSocketService();
+      if (socketService) {
+        socketService.emitWhatsAppStatusChange(userId, {
+          status: state,
+          message: `Estado cambiado a: ${state}`
+        });
+      }
+    });
+
+    // Evento: Pantalla de carga
+    client.on('loading_screen', async (percent, message) => {
+      console.log(`⏳ Cargando para usuario ${userId}: ${percent}% - ${message}`);
+      
+      // Emitir progreso via WebSocket
+      const socketService = getSocketService();
+      if (socketService) {
+        socketService.emitWhatsAppStatusChange(userId, {
+          status: 'loading',
+          progress: percent,
+          message: message
+        });
+      }
+    });
+
+    // Evento: Sesión restaurada
+    client.on('session_restored', async () => {
+      console.log(`🔄 Sesión restaurada para usuario ${userId}`);
+      this.connectionStatus.set(userId, 'connected');
+      
+      // Emitir restauración via WebSocket
+      const socketService = getSocketService();
+      if (socketService) {
+        socketService.emitWhatsAppStatusChange(userId, {
+          status: 'restored',
+          message: 'Sesión restaurada exitosamente'
+        });
+      }
+    });
+
+    // Evento: Error general del cliente
+    client.on('error', async (error) => {
+      console.error(`❌ Error en cliente WhatsApp para usuario ${userId}:`, error);
+      this.connectionStatus.set(userId, 'error');
+      
+      // Emitir error via WebSocket
+      const socketService = getSocketService();
+      if (socketService) {
+        socketService.emitWhatsAppError(userId, {
+          type: 'client_error',
+          message: error.message || 'Error desconocido',
+          error: error
+        });
+      }
+    });
+
+    // Evento: Sesión remota guardada
+    client.on('remote_session_saved', async () => {
+      console.log(`💾 Sesión remota guardada para usuario ${userId}`);
+    });
+
+    // Evento: Logout
+    client.on('logout', async () => {
+      console.log(`🚪 Logout para usuario ${userId}`);
+      this.connectionStatus.set(userId, 'logged_out');
+      
+      // Limpiar sesión
+      await redisService.deleteWhatsAppSession(userId);
+      this.sessions.delete(userId);
+      
+      // Emitir logout via WebSocket
+      const socketService = getSocketService();
+      if (socketService) {
+        socketService.emitWhatsAppStatusChange(userId, {
+          status: 'logged_out',
+          message: 'Sesión cerrada'
         });
       }
     });

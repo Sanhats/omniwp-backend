@@ -264,6 +264,26 @@ router.get('/qr',
 );
 
 /**
+ * @route GET /whatsapp/debug
+ * @desc Obtener información detallada de debugging para WhatsApp
+ * @access Private
+ */
+router.get('/debug', 
+  whatsappInfoRateLimit,
+  whatsappController.getDebugInfo
+);
+
+/**
+ * @route POST /whatsapp/restart
+ * @desc Reiniciar conexión WhatsApp (útil para resolver problemas)
+ * @access Private
+ */
+router.post('/restart', 
+  whatsappConnectionRateLimit,
+  whatsappController.restartConnection
+);
+
+/**
  * @route GET /whatsapp/messages
  * @desc Obtener historial de mensajes de WhatsApp del usuario
  * @access Private
