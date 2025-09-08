@@ -85,21 +85,13 @@ class WhatsAppWebService {
 
       console.log(`📱 Inicializando cliente WhatsApp para usuario ${userId}...`);
       
-      // Inicializar cliente con timeout
-      const initPromise = client.initialize();
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout inicializando cliente WhatsApp')), 30000); // 30 segundos
-      });
-
-      try {
-        await Promise.race([initPromise, timeoutPromise]);
-        console.log(`✅ Cliente WhatsApp inicializado para usuario ${userId}`);
-      } catch (error) {
+      // Inicializar cliente de forma asíncrona (no esperar a que termine)
+      client.initialize().catch(error => {
         console.error(`❌ Error inicializando cliente para usuario ${userId}:`, error);
         this.connectionStatus.set(userId, 'error');
-        throw error;
-      }
+      });
 
+      // Retornar inmediatamente - el QR se generará cuando esté listo
       return {
         success: true,
         status: 'qr_generated',

@@ -52,12 +52,18 @@ class WhatsAppController {
 
       if (result.success) {
         console.log('✅ Sesión creada exitosamente');
-        // Si se generó QR, obtenerlo
+        
+        // Intentar obtener QR code, pero no esperar si no está disponible
         let qrCode = null;
         if (result.status === 'qr_generated') {
-          console.log('📱 Obteniendo QR code...');
-          qrCode = await whatsappService.getQRCode(userId);
-          console.log('📱 QR code obtenido:', qrCode ? 'Sí' : 'No');
+          console.log('📱 Intentando obtener QR code...');
+          try {
+            qrCode = await whatsappService.getQRCode(userId);
+            console.log('📱 QR code obtenido:', qrCode ? 'Sí' : 'No');
+          } catch (error) {
+            console.log('📱 QR code no disponible aún, se generará pronto');
+            qrCode = null;
+          }
         }
 
         const response = {
@@ -281,6 +287,36 @@ class WhatsAppController {
 
     } catch (error) {
       console.error('❌ Error en getInfo:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * GET /whatsapp/qr
+   * Obtener QR code de WhatsApp (si está disponible)
+   */
+  async getQR(req, res) {
+    try {
+      const { userId } = req.user;
+
+      console.log(`📱 Obteniendo QR para usuario: ${userId}`);
+
+      const qrCode = await whatsappService.getQRCode(userId);
+      const status = await whatsappService.getConnectionStatus(userId);
+
+      res.json({
+        success: true,
+        qrCode: qrCode,
+        status: status.status,
+        connected: status.connected
+      });
+
+    } catch (error) {
+      console.error('❌ Error en getQR:', error);
       res.status(500).json({
         success: false,
         message: 'Error interno del servidor',

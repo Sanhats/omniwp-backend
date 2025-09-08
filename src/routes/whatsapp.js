@@ -254,6 +254,16 @@ router.get('/info-auth',
 );
 
 /**
+ * @route GET /whatsapp/qr
+ * @desc Obtener QR code de WhatsApp (si está disponible)
+ * @access Private
+ */
+router.get('/qr', 
+  whatsappInfoRateLimit,
+  whatsappController.getQR
+);
+
+/**
  * @route GET /whatsapp/messages
  * @desc Obtener historial de mensajes de WhatsApp del usuario
  * @access Private
