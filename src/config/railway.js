@@ -17,8 +17,8 @@ const config = {
 
   // Configuración de WhatsApp Web para Railway
   whatsappWeb: {
-    // Deshabilitar en Railway si no hay Redis
-    enabled: !!process.env.REDIS_URL && !!process.env.WHATSAPP_WEB_ENABLED,
+    // Habilitar si Redis está disponible (WHATSAPP_WEB_ENABLED es opcional)
+    enabled: !!process.env.REDIS_URL && (process.env.WHATSAPP_WEB_ENABLED !== 'false'),
     
     // Configuración de Puppeteer para Railway
     puppeteerOptions: {

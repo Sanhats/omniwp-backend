@@ -75,8 +75,8 @@ const validateWhatsApp = (schema) => {
  * Validar que el usuario tenga sesión de WhatsApp activa
  */
 const requireWhatsAppSession = (req, res, next) => {
-  const WhatsAppWebService = require('../services/whatsappWebService');
-  const whatsappService = new WhatsAppWebService();
+  const { getWhatsAppWebService } = require('../services/whatsappWebService');
+  const whatsappService = getWhatsAppWebService();
   
   const userId = req.user.id;
   
@@ -95,8 +95,8 @@ const requireWhatsAppSession = (req, res, next) => {
  * Validar que el usuario no tenga sesión de WhatsApp activa
  */
 const requireNoWhatsAppSession = (req, res, next) => {
-  const WhatsAppWebService = require('../services/whatsappWebService');
-  const whatsappService = new WhatsAppWebService();
+  const { getWhatsAppWebService } = require('../services/whatsappWebService');
+  const whatsappService = getWhatsAppWebService();
   
   const userId = req.user.id;
   

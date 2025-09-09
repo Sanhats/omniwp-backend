@@ -598,3 +598,32 @@ class WhatsAppWebService {
 }
 
 module.exports = WhatsAppWebService;
+
+// Crear instancia singleton
+let whatsappServiceInstance = null;
+
+/**
+ * Obtener instancia singleton del servicio
+ * @returns {WhatsAppWebService} - Instancia del servicio
+ */
+function getWhatsAppWebService() {
+  if (!whatsappServiceInstance) {
+    whatsappServiceInstance = new WhatsAppWebService();
+  }
+  return whatsappServiceInstance;
+}
+
+/**
+ * Inicializar servicio singleton
+ * @returns {Promise<WhatsAppWebService>} - Instancia inicializada
+ */
+async function initializeWhatsAppWebService() {
+  if (!whatsappServiceInstance) {
+    whatsappServiceInstance = new WhatsAppWebService();
+    await whatsappServiceInstance.initialize();
+  }
+  return whatsappServiceInstance;
+}
+
+module.exports.getWhatsAppWebService = getWhatsAppWebService;
+module.exports.initializeWhatsAppWebService = initializeWhatsAppWebService;

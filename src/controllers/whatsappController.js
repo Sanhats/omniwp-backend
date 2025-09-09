@@ -1,8 +1,7 @@
-const WhatsAppWebService = require('../services/whatsappWebService');
+const { getWhatsAppWebService, initializeWhatsAppWebService } = require('../services/whatsappWebService');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
-const whatsappService = new WhatsAppWebService();
 
 /**
  * Controlador para endpoints de WhatsApp Web
@@ -18,7 +17,7 @@ class WhatsAppController {
    */
   async initializeService() {
     try {
-      await whatsappService.initialize();
+      await initializeWhatsAppWebService();
     } catch (error) {
       console.error('❌ Error inicializando WhatsAppService:', error);
     }
@@ -47,6 +46,7 @@ class WhatsAppController {
 
       console.log('📱 Iniciando creación de sesión WhatsApp...');
       // Crear nueva sesión
+      const whatsappService = getWhatsAppWebService();
       const result = await whatsappService.createSession(userId);
       console.log('📱 Resultado de creación de sesión:', result);
 
@@ -103,6 +103,7 @@ class WhatsAppController {
 
       console.log(`📊 Obteniendo estado WhatsApp para usuario: ${userId}`);
 
+      const whatsappService = getWhatsAppWebService();
       const status = await whatsappService.getConnectionStatus(userId);
       const qrCode = await whatsappService.getQRCode(userId);
 
@@ -132,6 +133,7 @@ class WhatsAppController {
 
       console.log(`🔌 Desconectando WhatsApp para usuario: ${userId}`);
 
+      const whatsappService = getWhatsAppWebService();
       const result = await whatsappService.disconnectSession(userId);
 
       if (result.success) {
@@ -167,6 +169,7 @@ class WhatsAppController {
 
       console.log(`🔄 Restaurando sesión WhatsApp para usuario: ${userId}`);
 
+      const whatsappService = getWhatsAppWebService();
       const result = await whatsappService.restoreSession(userId);
 
       if (result.success) {
@@ -219,6 +222,7 @@ class WhatsAppController {
       console.log(`📤 Enviando mensaje WhatsApp desde usuario ${userId} a ${clientNumber}`);
 
       // Verificar que el usuario tenga sesión activa
+      const whatsappService = getWhatsAppWebService();
       if (!whatsappService.hasActiveSession(userId)) {
         return res.status(400).json({
           success: false,
@@ -267,6 +271,7 @@ class WhatsAppController {
     try {
       const { userId } = req.user;
 
+      const whatsappService = getWhatsAppWebService();
       const clientInfo = whatsappService.getClientInfo(userId);
 
       if (!clientInfo) {
@@ -305,6 +310,7 @@ class WhatsAppController {
 
       console.log(`📱 Obteniendo QR para usuario: ${userId}`);
 
+      const whatsappService = getWhatsAppWebService();
       const qrCode = await whatsappService.getQRCode(userId);
       const status = await whatsappService.getConnectionStatus(userId);
 
@@ -336,6 +342,7 @@ class WhatsAppController {
       console.log(`🔄 Reiniciando conexión WhatsApp para usuario: ${userId}`);
 
       // Desconectar sesión existente si existe
+      const whatsappService = getWhatsAppWebService();
       await whatsappService.disconnectSession(userId);
       
       // Esperar un momento
@@ -370,6 +377,7 @@ class WhatsAppController {
 
       console.log(`🔍 Obteniendo información de debug para usuario: ${userId}`);
 
+      const whatsappService = getWhatsAppWebService();
       const status = await whatsappService.getConnectionStatus(userId);
       const qrCode = await whatsappService.getQRCode(userId);
       const hasSession = whatsappService.hasActiveSession(userId);
