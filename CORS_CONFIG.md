@@ -1,145 +1,171 @@
-# 🔧 Configuración de CORS - OmniWP Backend
+# Configuración de CORS para OmniWP Backend
 
-## 📋 **Problema Resuelto**
+## Problema Resuelto
 
-El frontend desplegado en Vercel (`https://omniwp-frontend.vercel.app`) no podía comunicarse con el backend debido a restricciones de CORS.
+El frontend en `localhost:3000` no podía conectarse al backend en Railway debido a políticas de CORS.
 
-## ✅ **Solución Implementada**
+## Solución Implementada
 
-### 1. **Configuración de CORS Actualizada**
+### 1. Orígenes Permitidos
 
-```javascript
-// src/server.js
-const allowedOrigins = process.env.NODE_ENV === 'production' 
-  ? [
-      'https://omniwp-frontend.vercel.app',  // Frontend en Vercel
-      'https://omniwp.vercel.app', 
-      'https://www.omniwp.com'
-    ]
-  : [
-      'http://localhost:3000', 
-      'http://localhost:3001',
-      'http://127.0.0.1:3001'
-    ];
+El backend ahora permite los siguientes orígenes:
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Permitir requests sin origin (ej: mobile apps, Postman)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      callback(new Error('No permitido por CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
-```
+**En Producción (Railway):**
+- `https://omniwp-frontend.vercel.app`
+- `https://omniwp.vercel.app`
+- `https://www.omniwp.com`
+- `http://localhost:3000` (si está habilitado)
+- `http://localhost:3001` (si está habilitado)
+- `http://127.0.0.1:3000` (si está habilitado)
+- `http://127.0.0.1:3001` (si está habilitado)
 
-### 2. **Manejo de Preflight Requests**
+**En Desarrollo:**
+- `http://localhost:3000`
+- `http://localhost:3001`
+- `http://127.0.0.1:3000`
+- `http://127.0.0.1:3001`
 
-```javascript
-// Manejo adicional de preflight requests
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(200);
-});
-```
+### 2. Variables de Entorno
 
-### 3. **Endpoints de Prueba**
+Para controlar el comportamiento de CORS en producción:
 
-- **Health Check**: `GET /api/v1/health`
-- **CORS Test**: `GET /api/v1/cors-test`
-
-## 🚀 **Dominios Permitidos**
-
-### **Producción**:
-- ✅ `https://omniwp-frontend.vercel.app` (Frontend principal)
-- ✅ `https://omniwp.vercel.app` (Backup)
-- ✅ `https://www.omniwp.com` (Dominio principal)
-
-### **Desarrollo**:
-- ✅ `http://localhost:3000` (Backend local)
-- ✅ `http://localhost:3001` (Frontend local)
-- ✅ `http://127.0.0.1:3001` (Frontend local alternativo)
-
-## 🧪 **Pruebas de CORS**
-
-### **Desde el Frontend (Vercel)**:
-```javascript
-// Prueba básica
-fetch('https://tu-backend.railway.app/api/v1/health')
-  .then(response => response.json())
-  .then(data => console.log('CORS OK:', data));
-
-// Prueba con credenciales
-fetch('https://tu-backend.railway.app/api/v1/auth/login', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  credentials: 'include',
-  body: JSON.stringify({
-    email: 'tomas@test.com',
-    password: '123456'
-  })
-})
-.then(response => response.json())
-.then(data => console.log('Login OK:', data));
-```
-
-### **Desde Postman/curl**:
 ```bash
-# Health check
-curl -H "Origin: https://omniwp-frontend.vercel.app" \
-     -H "Access-Control-Request-Method: GET" \
-     -H "Access-Control-Request-Headers: X-Requested-With" \
-     -X OPTIONS \
-     https://tu-backend.railway.app/api/v1/health
+# Permitir localhost en producción (para desarrollo)
+ALLOW_LOCALHOST_IN_PRODUCTION=true
 
-# CORS test
-curl -H "Origin: https://omniwp-frontend.vercel.app" \
-     https://tu-backend.railway.app/api/v1/cors-test
+# Otras variables relevantes
+NODE_ENV=production
+RAILWAY_ENVIRONMENT=production
 ```
 
-## 🔍 **Debugging de CORS**
+### 3. Configuración de Headers
 
-### **Logs del Servidor**:
-El servidor ahora registra los orígenes bloqueados:
-```
-CORS blocked origin: https://dominio-no-permitido.com
-```
+El backend envía los siguientes headers de CORS:
 
-### **Headers de Respuesta**:
-```http
-Access-Control-Allow-Origin: https://omniwp-frontend.vercel.app
+```
+Access-Control-Allow-Origin: [origin específico]
 Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
 Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
 Access-Control-Allow-Credentials: true
 ```
 
-## ✅ **Estado Actual**
+### 4. Manejo de Preflight Requests
 
-- ✅ **CORS configurado** para Vercel
-- ✅ **Preflight requests** manejados
-- ✅ **Credenciales** habilitadas
-- ✅ **Endpoints de prueba** disponibles
-- ✅ **Logging** para debugging
+- Los requests OPTIONS son manejados correctamente
+- Se envían todos los headers necesarios
+- Se permite el origin específico o `*` para requests sin origin
 
-## 🚀 **Próximos Pasos**
+## Cómo Usar
 
-1. **Deploy** del backend con la nueva configuración
-2. **Prueba** desde el frontend de Vercel
-3. **Verificación** de que todos los endpoints funcionan
-4. **Monitoreo** de logs para detectar problemas
+### Para Desarrollo Local
 
----
+1. **Backend local + Frontend local:**
+   ```bash
+   # No se requiere configuración adicional
+   npm run dev
+   ```
 
-**¡El backend ahora está listo para recibir requests desde Vercel!** 🎉
+2. **Backend en Railway + Frontend local:**
+   ```bash
+   # En Railway, configurar:
+   ALLOW_LOCALHOST_IN_PRODUCTION=true
+   ```
+
+### Para Producción
+
+1. **Backend en Railway + Frontend en Vercel:**
+   ```bash
+   # No se requiere configuración adicional
+   # Los orígenes de Vercel están permitidos por defecto
+   ```
+
+## Pruebas
+
+### Probar CORS Localmente
+
+```bash
+npm run test-cors
+```
+
+### Probar CORS en Railway
+
+```bash
+BACKEND_URL=https://omniwp-backend-production.up.railway.app npm run test-cors
+```
+
+## Debugging
+
+### Verificar Logs del Servidor
+
+En Railway, revisar los logs para ver:
+- `CORS: Verificando origin: [origin]`
+- `CORS: Origin permitido: [origin]` o `CORS: Origin bloqueado: [origin]`
+- `CORS: Preflight request desde: [origin]`
+
+### Verificar Headers en el Navegador
+
+1. Abrir DevTools → Network
+2. Hacer una request al backend
+3. Verificar que los headers de CORS estén presentes
+4. Si hay error, revisar la pestaña Console
+
+## Solución de Problemas
+
+### Error: "No 'Access-Control-Allow-Origin' header is present"
+
+**Causa:** El origin no está en la lista de orígenes permitidos.
+
+**Solución:**
+1. Verificar que `ALLOW_LOCALHOST_IN_PRODUCTION=true` esté configurado en Railway
+2. Verificar que el frontend esté usando `http://localhost:3000` (no `https://`)
+3. Revisar los logs del servidor para confirmar el origin
+
+### Error: "Response to preflight request doesn't pass access control check"
+
+**Causa:** El request OPTIONS no está siendo manejado correctamente.
+
+**Solución:**
+1. Verificar que el endpoint soporte OPTIONS
+2. Revisar que los headers de CORS estén configurados correctamente
+3. Verificar que el servidor esté respondiendo con status 200 para OPTIONS
+
+### Error: "Credentials flag is true, but Access-Control-Allow-Credentials is not 'true'"
+
+**Causa:** El header `Access-Control-Allow-Credentials` no está configurado.
+
+**Solución:**
+1. Verificar que `credentials: true` esté configurado en CORS
+2. Asegurar que el origin específico esté permitido (no `*`)
+
+## Configuración Recomendada
+
+### Para Desarrollo
+```bash
+# En .env local
+NODE_ENV=development
+# No se requiere ALLOW_LOCALHOST_IN_PRODUCTION
+```
+
+### Para Producción con Desarrollo
+```bash
+# En Railway
+NODE_ENV=production
+RAILWAY_ENVIRONMENT=production
+ALLOW_LOCALHOST_IN_PRODUCTION=true
+```
+
+### Para Producción Final
+```bash
+# En Railway
+NODE_ENV=production
+RAILWAY_ENVIRONMENT=production
+ALLOW_LOCALHOST_IN_PRODUCTION=false
+# O simplemente no configurar la variable
+```
+
+## Notas Importantes
+
+1. **Seguridad:** Solo habilitar `ALLOW_LOCALHOST_IN_PRODUCTION=true` durante desarrollo
+2. **Performance:** Los orígenes se verifican en cada request
+3. **Debugging:** Los logs detallados ayudan a identificar problemas de CORS
+4. **Compatibilidad:** La configuración es compatible con todos los navegadores modernos

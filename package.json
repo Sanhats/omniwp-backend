@@ -28,6 +28,7 @@
     "test-whatsapp-direct": "node src/scripts/testWhatsAppDirect.js",
     "test-whatsapp-web": "node src/scripts/testWhatsAppWeb.js",
     "test-whatsapp-connection": "node src/scripts/testWhatsAppConnection.js",
+    "test-cors": "node src/scripts/testCors.js",
     "test-railway": "node src/scripts/testRailwayDeploy.js",
     "debug-whatsapp": "node src/scripts/debugWhatsAppConnection.js",
     "update-client-phone": "node src/scripts/updateClientPhone.js",

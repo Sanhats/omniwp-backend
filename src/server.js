@@ -29,15 +29,26 @@ const isProduction = process.env.NODE_ENV === 'production' ||
                     process.env.RENDER === 'true' ||
                     process.env.PORT; // Railway siempre define PORT
 
+// Permitir localhost en producción si está habilitado
+const allowLocalhostInProduction = process.env.ALLOW_LOCALHOST_IN_PRODUCTION === 'true';
+
 const allowedOrigins = isProduction
   ? [
       'https://omniwp-frontend.vercel.app',
       'https://omniwp.vercel.app', 
-      'https://www.omniwp.com'
+      'https://www.omniwp.com',
+      // Permitir localhost para desarrollo con backend en producción si está habilitado
+      ...(allowLocalhostInProduction ? [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001'
+      ] : [])
     ]
   : [
       'http://localhost:3000', 
       'http://localhost:3001',
+      'http://127.0.0.1:3000',
       'http://127.0.0.1:3001'
     ];
 
@@ -47,6 +58,8 @@ console.log('RAILWAY_ENVIRONMENT:', process.env.RAILWAY_ENVIRONMENT);
 console.log('RENDER:', process.env.RENDER);
 console.log('PORT:', process.env.PORT);
 console.log('isProduction:', isProduction);
+console.log('allowLocalhostInProduction:', allowLocalhostInProduction);
+console.log('ALLOW_LOCALHOST_IN_PRODUCTION:', process.env.ALLOW_LOCALHOST_IN_PRODUCTION);
 console.log('allowedOrigins:', allowedOrigins);
 
 app.use(cors({
@@ -65,12 +78,17 @@ app.use(cors({
       callback(null, true);
     } else {
       console.log('CORS: Origin bloqueado:', origin);
+      console.log('CORS: Tipos de origins permitidos:', {
+        production: ['https://omniwp-frontend.vercel.app', 'https://omniwp.vercel.app', 'https://www.omniwp.com'],
+        development: ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001']
+      });
       callback(new Error('No permitido por CORS'));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200 // Para compatibilidad con navegadores antiguos
 }));
 
 // Manejo adicional de preflight requests
@@ -78,16 +96,22 @@ app.options('*', (req, res) => {
   const origin = req.headers.origin;
   console.log('CORS: Preflight request desde:', origin);
   
+  // Siempre enviar headers de CORS, pero solo permitir origins válidos
   if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
     console.log('CORS: Preflight permitido para:', origin);
+  } else if (!origin) {
+    // Permitir requests sin origin (ej: Postman, mobile apps)
+    res.header('Access-Control-Allow-Origin', '*');
+    console.log('CORS: Preflight permitido sin origin');
   } else {
+    // Para origins no permitidos, enviar headers pero sin Access-Control-Allow-Origin
     console.log('CORS: Preflight bloqueado para:', origin);
   }
   
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.header('Access-Control-Allow-Credentials', 'true');
   res.sendStatus(200);
 });
 
